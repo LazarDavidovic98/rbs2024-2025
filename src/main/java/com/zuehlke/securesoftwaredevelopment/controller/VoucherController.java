@@ -40,6 +40,11 @@ public class VoucherController {
     @PostMapping("/new-voucher")
     public String addVoucher(@RequestParam("value") int value,
                              @RequestParam("code") String code) {
+        // Validate input parameters
+        if (code == null || code.trim().isEmpty() || value <= 0) {
+            return "redirect:/new-voucher";
+        }
+        
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.isAuthenticated()) {
             User user = (User) authentication.getPrincipal();

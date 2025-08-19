@@ -25,13 +25,16 @@ public class VoucherRepository {
     }
 
     public void create(int userId, String code, int value) {
+        if (code == null || code.trim().isEmpty()) {
+            return;
+        }
+        
         String query = "INSERT INTO voucher(code, value) VALUES(?, ?)";
-        long id = 0;
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query);
         ) {
             statement.setString(1, code);
-            statement.setString(2, String.valueOf(value));
+            statement.setInt(2, value);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -39,6 +42,10 @@ public class VoucherRepository {
     }
 
     public boolean checkIfVoucherExist(String voucher) {
+        if (voucher == null || voucher.trim().isEmpty()) {
+            return false;
+        }
+        
         String query = "SELECT id FROM voucher WHERE code=?";
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
@@ -54,21 +61,25 @@ public class VoucherRepository {
     }
 
     public boolean checkIfVoucherIsAssignedToUser(String voucher, int id) {
-        String query1 = "SELECT username FROM users WHERE id=" + id;
+        if (voucher == null || voucher.trim().isEmpty()) {
+            return false;
+        }
+        
+        String query1 = "SELECT username FROM users WHERE id=?";
 
         try (Connection connection = dataSource.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet rs = statement.executeQuery(query1)) {
+             PreparedStatement statement1 = connection.prepareStatement(query1)) {
+            statement1.setInt(1, id);
+            ResultSet rs = statement1.executeQuery();
             if (rs.next()) {
                 String username = rs.getString(1);
-                String query2 = "SELECT id FROM voucher WHERE code=? AND code LIKE '%" + username + "%'";
-                PreparedStatement preparedStatement = connection.prepareStatement(query2);
-                preparedStatement.setString(1, voucher);
-                ResultSet set = preparedStatement.executeQuery();
-                if (set.next()) {
-                    return true;
+                String query2 = "SELECT id FROM voucher WHERE code=? AND code LIKE ?";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(query2)) {
+                    preparedStatement.setString(1, voucher);
+                    preparedStatement.setString(2, "%" + username + "%");
+                    ResultSet set = preparedStatement.executeQuery();
+                    return set.next();
                 }
-                return false;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -77,6 +88,10 @@ public class VoucherRepository {
     }
 
     public void deleteVoucher(String voucher) {
+        if (voucher == null || voucher.trim().isEmpty()) {
+            return;
+        }
+        
         String query = "DELETE FROM voucher WHERE code=?";
 
         try (Connection connection = dataSource.getConnection();

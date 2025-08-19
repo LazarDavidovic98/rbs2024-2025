@@ -123,8 +123,7 @@ public class BooksController {
     @PostMapping("/buy-book/{id}")
     public String buyBook(@PathVariable("id") int id, String address, String voucher) {
         String voucherUsed = "";
-        boolean exist = voucherRepository.checkIfVoucherExist(voucher);
-
+        
         if (address.length() < 10) {
             return String.format("redirect:/buy-book/%s?addressError=true", id);
         }
@@ -133,10 +132,15 @@ public class BooksController {
         if (authentication != null && authentication.isAuthenticated()) {
             User user = (User) authentication.getPrincipal();
 
-            if (exist) {
-                if (voucherRepository.checkIfVoucherIsAssignedToUser(voucher, user.getId())) {
-                    voucherRepository.deleteVoucher(voucher);
-                    voucherUsed = "&voucherUsed=true";
+            // Only process voucher if it's not null or empty
+            if (voucher != null && !voucher.trim().isEmpty()) {
+                boolean exist = voucherRepository.checkIfVoucherExist(voucher);
+                
+                if (exist) {
+                    if (voucherRepository.checkIfVoucherIsAssignedToUser(voucher, user.getId())) {
+                        voucherRepository.deleteVoucher(voucher);
+                        voucherUsed = "&voucherUsed=true";
+                    }
                 }
             }
         }
