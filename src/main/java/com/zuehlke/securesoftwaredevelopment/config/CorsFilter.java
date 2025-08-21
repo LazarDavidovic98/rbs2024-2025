@@ -14,9 +14,8 @@ import java.util.List;
 @Order(1)
 public class CorsFilter implements Filter {
 
-    // This is to be replaced with a list of domains allowed to access the server
-    //You can include more than one origin here
-    private final List<String> allowedOrigins = Arrays.asList("http://localhost:3000");
+    // Omoguciti jos jedan port zbog testiranja 
+    private final List<String> allowedOrigins = Arrays.asList("http://localhost:3000", "http://localhost:8081");
 
     public void destroy() {
 
@@ -45,6 +44,11 @@ public class CorsFilter implements Filter {
             // Access-Control-Allow-Headers
             response.setHeader("Access-Control-Allow-Headers",
                     "Origin, X-Requested-With, Content-Type, Accept, " + "X-CSRF-TOKEN");
+
+            if ("OPTIONS".equals(request.getMethod())) {
+                response.setStatus(HttpServletResponse.SC_OK);
+                return;
+            }
         }
 
         chain.doFilter(req, res);
