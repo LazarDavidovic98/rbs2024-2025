@@ -14,8 +14,7 @@ import java.util.List;
 @Order(1)
 public class CorsFilter implements Filter {
 
-    // Omoguciti jos jedan port zbog testiranja 
-    private final List<String> allowedOrigins = Arrays.asList("http://localhost:3000", "http://localhost:8081");
+    private final List<String> allowedOrigins = Arrays.asList("http://localhost:3000");
 
     public void destroy() {
 
