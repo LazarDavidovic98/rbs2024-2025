@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.util.HtmlUtils;
 
 @Controller
 public class CommentController {
@@ -26,6 +27,20 @@ public class CommentController {
     public ResponseEntity<Void> createComment(@RequestBody Comment comment, Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         comment.setUserId(user.getId());
+        
+        // Validacija unosa 
+        if (comment.getComment() == null || comment.getComment().trim().isEmpty()) {
+            return ResponseEntity.badRequest().build();
+        }
+        
+        // Sanitizacija inputa za zastitu od xss-a
+        String sanitizedComment = HtmlUtils.htmlEscape(comment.getComment().trim());
+        comment.setComment(sanitizedComment);
+        
+        if (sanitizedComment.length() > 1000) {
+            return ResponseEntity.badRequest().build();
+        }
+        
         commentRepository.create(comment);
 
         return ResponseEntity.noContent().build();
